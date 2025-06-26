@@ -1,0 +1,36 @@
+/* AsideFilter.module.css */
+
+.listItem {
+    padding: 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+  }
+  
+  .listItem:hover {
+  }
+  
+  .listItem.active {
+    color: #ff6e38;
+  }
+  .listItem.active::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+   background-color: #ff6e38;
+    margin-right: 8px; 
+  }
+  
+  
+  .toggleButton {
+    margin-top: 8px;
+    color: orangered;
+    text-decoration: underline;
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
+  

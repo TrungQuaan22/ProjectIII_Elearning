@@ -1,0 +1,31 @@
+version: '3.8'
+ 
+services:
+  backend:
+    image: thuannqt/kiai-library:v12
+    container_name: kiai-backend-dev
+    ports:
+      - '8000:8000'
+    depends_on:
+      - mysql
+    networks:
+      - kiai-network
+ 
+  mysql:
+    image: mysql:8.0
+    container_name: kiai-mysql-dev
+    environment:
+      MYSQL_ROOT_PASSWORD: thuan2003
+      MYSQL_DATABASE: kiai_library
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - '3307:3306'
+    networks:
+      - kiai-network
+ 
+networks:
+  kiai-network:
+ 
+volumes:
+  mysql-data:

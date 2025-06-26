@@ -1,0 +1,28 @@
+.container {
+  display: flex;
+  min-height: 60px;
+  justify-content: space-between;
+  align-items: center;
+  min-width: 1260px;
+}
+.container div:last-child {
+  display: flex;
+}
+.headerAuth {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000; 
+  background-color: #fff; 
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); 
+}
+.header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1001; 
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+}

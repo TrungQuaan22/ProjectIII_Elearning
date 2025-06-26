@@ -1,0 +1,117 @@
+.userHeader {
+  display: flex;
+  align-items: center;
+  position: relative;
+
+  .icon {
+    margin: 0 10px;
+    font-size: 24px;
+    color: #000;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: #22f0ff;
+    }
+  }
+
+  .badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #3dafb8;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 2px;
+    font-size: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 18px;
+    height: 18px;
+  }
+
+  .userMenuContainer {
+    position: relative;
+
+    .userAvatarContainer {
+      margin: 0 10px;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.2s ease;
+
+      &:hover {
+        transform: scale(1.05);
+      }
+
+      .userAvatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #e0e0e0;
+        transition: border-color 0.3s ease;
+
+        &:hover {
+          border-color: #ff5722;
+        }
+      }
+
+      .userInitials {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 16px;
+        border: 2px solid #e0e0e0;
+        transition: border-color 0.3s ease;
+
+        &:hover {
+          border-color: #22f0ff;
+        }
+      }
+    }
+
+    .userMenu {
+      width: 240px !important;
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(150px);
+      border-radius: 4px;
+      padding: 10px 0px;
+      z-index: 1000;
+      color: #fff;
+
+      .menuItem {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        transition: background 0.2s ease-in-out;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.2);
+          cursor: pointer;
+        }
+
+        .menuIcon {
+          width: 20px;
+          height: 20px;
+          margin-right: 10px;
+        }
+      }
+    }
+  }
+}

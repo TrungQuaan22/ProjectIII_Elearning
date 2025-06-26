@@ -1,0 +1,25 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+}
+.container_search {
+  background-color: rgba(245, 245, 245, 1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Poppins';
+  border-radius: 4px;
+  input {
+    border: none;
+    outline: none;
+    background-color: rgba(245, 245, 245, 1);
+    padding: 10px 20px;
+    min-width: 235px;
+  }
+  button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0 5px;
+  }
+}

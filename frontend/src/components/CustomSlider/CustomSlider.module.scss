@@ -1,0 +1,27 @@
+.arrowButton {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.leftArrow {
+  transform: rotate(180deg);
+}
+.leftArrow,
+.rightArrow {
+  width: 46px;
+  height: 46px;
+  background-color: rgba(245, 245, 245, 1);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  &:hover {
+    color: rgba(255, 69, 0, 0.7804);
+  }
+}
+.sliderContainer {
+  width: 100%;
+  max-width: 1150px;
+  margin: 0 auto;
+}

@@ -1,0 +1,158 @@
+.card {
+  min-height: 300px;
+  width: 235px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+
+  &:hover {
+    .addToCart {
+      animation: slideUp 0.5s ease forwards;
+    }
+  }
+
+  &:not(:hover) {
+    .addToCart {
+      animation: slideDown 0.5s ease forwards;
+    }
+  }
+}
+
+.imageCard {
+  position: relative;
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  border-bottom: 1px solid #eaeaea;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.addToCartWish {
+  position: absolute;
+  z-index: 1000;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 10px 0;
+  background: rgba(255, 69, 0, 1);
+  color: white;
+  text-align: center;
+  cursor: pointer;
+  border-bottom: 8px;
+}
+
+.addToCart {
+  position: absolute;
+  z-index: 1000;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 10px 0;
+  background: rgba(255, 69, 0, 1);
+  color: white;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(100%);  
+  cursor: pointer;
+  border-bottom: 8px;
+  overflow: hidden;
+  transition: all 100ms ease-in-out;
+}
+@keyframes slideUp {
+  0% {
+    transform: translateY(100%);
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Hiệu ứng slide down */
+@keyframes slideDown {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+// @keyframes slideUp {
+//   0% {
+//     opacity: 1;
+//     transform: translateY(100%);
+//   }
+//   20% {
+
+//   }
+//   100% {
+//     opacity: 1;
+//     transform: translateY(0);
+//   }
+// }
+
+// @keyframes slideDown {
+//   0% {
+//     opacity: 1;
+//     transform: translateY(0);
+//   }
+//   100% {
+//     opacity: 0;
+//     transform: translateY(100%);
+//   }
+// }
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: transform 0.3s ease; 
+  overflow: hidden;
+}
+
+.image:hover {
+  transform: scale(1.1); /* Zoom lên 10% */
+}
+
+.body {
+  padding: 16px;
+  text-align: center;
+}
+
+.title {
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.icons {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .icon {
+    width: 32px;
+    height: 32px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease;
+
+    &:hover {
+      transform: scale(1.2);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+  }
+}

@@ -1,0 +1,128 @@
+.footer {
+  padding: 50px 0px;
+  width: 1260px;
+  color: gray;
+  height: 440px;
+  text-align: left;
+  .container {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 75px;
+  }
+  .section {
+    flex: 1;
+    h2 {
+      font-size: 24px;
+      font-family: 'Inter';
+      margin-bottom: 30px;
+    }
+    h3 {
+      font-size: 20px;
+      font-weight: 500;
+      margin-bottom: 30px;
+    }
+    p {
+      margin-top: 20px;
+    }
+    address,
+    li,
+    a {
+      margin-bottom: 25px;
+      text-decoration: none;
+      color: gray;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+
+      li a {
+        text-decoration: none;
+        color: gray;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
+  .subscribe {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    background-color: #1b5ace;
+    padding: 5px;
+    border-radius: 5px;
+    width: fit-content;
+    height: 48px;
+    border: 1px solid #1b5ace;
+  }
+
+  .input {
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #1b5ace; 
+    font-size: 16px;
+    flex: 1;
+    padding: 5px 10px;
+  }
+
+  .input::placeholder {
+    color: #1b5ace; 
+  }
+
+  .button {
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    color: gray;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .button:hover {
+    color: #1b5ace; 
+  }
+
+  .download {
+    display: flex;
+    gap: 10px;
+    .imgQr img {
+      width: 80px;
+      height: 80px;
+    }
+    .imgStore {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .imgStore img {
+      width: 104px;
+      height: 40px;
+    }
+  }
+
+  .socials {
+    margin-top: 1rem;
+
+    a {
+      margin-right: 10px;
+      color: gray;
+      text-decoration: none;
+
+      &:hover {
+        color: #1b5ace;
+      }
+    }
+  }
+
+  .copyright {
+    margin-top: 2rem;
+    text-align: center;
+  } 
+}
