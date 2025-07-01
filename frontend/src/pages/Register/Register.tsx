@@ -2,8 +2,6 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
-import { Button } from 'src/components/ui/button'
-import { imgResLog } from 'src/assets/images'
 import styles from './register.module.scss'
 import { useRegister } from 'src/hooks/useAuth'
 
@@ -50,11 +48,9 @@ const Register: React.FC = () => {
   const onSubmit = async (data: FormValues) => {
     setErrorMessage(null)
     clearErrors()
-    
-    const { confirm_password, ...registerData } = data
-    
+
     try {
-      await registerMutation.mutateAsync(registerData)
+      await registerMutation.mutateAsync(data)
     } catch (error: unknown) {
       const registerError = error as RegisterError
       if (registerError.type === 'validation' && registerError.errors) {
@@ -80,13 +76,13 @@ const Register: React.FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.imageSection}>
-        <img src={imgResLog} alt='Shopping and phone' style={{ maxWidth: '100%', height: 'auto' }} />
+        <img src='images/banner/mahila.png' alt='Shopping and phone' style={{ maxWidth: '100%', height: 'auto' }} />
       </div>
       <div className={styles.formSection}>
         <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
           <h2>Create an account</h2>
           <p>Enter your details below</p>
-          
+
           <div className={styles.inputGroup}>
             <input
               type='text'
@@ -131,6 +127,11 @@ const Register: React.FC = () => {
                 minLength: {
                   value: 6,
                   message: 'Password must be at least 6 characters'
+                },
+                pattern: {
+                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+                  message:
+                    'Password must contain at least 1 lowercase letter, 1 uppercase letter, 1 number, and 1 symbol'
                 }
               })}
               onChange={() => handleInputChange('password')}
@@ -150,6 +151,15 @@ const Register: React.FC = () => {
               className={styles.inputField}
               {...formRegister('confirm_password', {
                 required: 'Please confirm your password',
+                minLength: {
+                  value: 6,
+                  message: 'Password must be at least 6 characters'
+                },
+                pattern: {
+                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+                  message:
+                    'Password must contain at least 1 lowercase letter, 1 uppercase letter, 1 number, and 1 symbol'
+                },
                 validate: (value) => value === getValues('password') || 'Passwords do not match'
               })}
               onChange={() => handleInputChange('confirm_password')}
@@ -159,6 +169,21 @@ const Register: React.FC = () => {
             </div>
             <div className={styles.errorMessage}>
               {errors.confirm_password && <span className={styles.error}>{errors.confirm_password.message}</span>}
+            </div>
+          </div>
+
+          <div className={styles.inputGroup}>
+            <input
+              type='date'
+              placeholder='Date of Birth'
+              className={styles.inputField}
+              {...formRegister('date_of_birth', {
+                required: 'Date of birth is required'
+              })}
+              onChange={() => handleInputChange('date_of_birth')}
+            />
+            <div className={styles.errorMessage}>
+              {errors.date_of_birth && <span className={styles.error}>{errors.date_of_birth.message}</span>}
             </div>
           </div>
 

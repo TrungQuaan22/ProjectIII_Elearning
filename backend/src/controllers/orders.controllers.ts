@@ -8,32 +8,40 @@ import { ObjectId } from 'mongodb'
 import Order from '~/models/schemas/Order.schema'
 
 export const createOrderController = async (
-  req: Request<Record<string, never>, unknown, CreateOrderReqBody>,
+  req: Request<Record<string, never>, unknown, { course_ids: string[] }>,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const user = req.user as User
-    const { items } = req.body
+    const { course_ids } = req.body
+
+    if (!course_ids || course_ids.length === 0) {
+      throw new Error('Course IDs are required')
+    }
 
     // Calculate total amount
     let total_amount = 0
-    for (const item of items) {
-      const course = await databaseService.courses.findOne({ _id: ObjectId.createFromHexString(item.course_id) })
+    const courses = []
+
+    for (const courseId of course_ids) {
+      const course = await databaseService.courses.findOne({ _id: ObjectId.createFromHexString(courseId) })
       if (!course) {
-        throw new Error('Course not found')
+        throw new Error(`Course with ID ${courseId} not found`)
       }
       total_amount += course.price
+      courses.push(course)
     }
 
-    // Create order with only required fields
+    // Create order
     const order = new Order({
       user_id: user._id,
-      items: items.map((item) => ({
-        course_id: ObjectId.createFromHexString(item.course_id)
+      items: course_ids.map((courseId) => ({
+        course_id: ObjectId.createFromHexString(courseId)
       })),
       total_amount,
-      status: OrderStatus.Pending
+      status: OrderStatus.Pending,
+      payment_method: 'vnpay'
     })
 
     const result = await databaseService.orders.insertOne(order)
@@ -42,7 +50,12 @@ export const createOrderController = async (
       message: 'Order created successfully',
       data: {
         order_id: result.insertedId.toString(),
-        total_amount
+        total_amount,
+        courses: courses.map((course) => ({
+          _id: course._id,
+          title: course.title,
+          price: course.price
+        }))
       }
     })
   } catch (error) {

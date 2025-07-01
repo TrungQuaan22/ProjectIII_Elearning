@@ -39,7 +39,7 @@ export const getBlogsController = async (
   next: NextFunction
 ) => {
   try {
-    let query = { ...req.query, category: req.query.category }
+    const query = { ...req.query, category: req.query.category }
     // Nếu không phải admin thì chỉ cho lấy blog published
     if (!req.user || req.user.role !== 'admin') {
       query.status = BlogStatus.Published

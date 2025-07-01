@@ -8,9 +8,8 @@ import {
   CreateLessonReqBody
 } from '~/models/requests/courses.request'
 import { ErrorWithStatus } from '~/models/Errors'
-import { CourseStatus, OrderStatus } from '~/constants/enum'
 import Course, { TopicType, LessonType, Topic, Lesson } from '~/models/schemas/Course.schema'
-import { PublicCourse, PrivateCourse } from '~/models/responses/courses.response'
+import { PublicCourse } from '~/models/responses/courses.response'
 import User from '~/models/schemas/User.schema'
 
 class CourseService {
@@ -205,30 +204,33 @@ class CourseService {
       }
     )
 
-    // Cập nhật lại order của các topic còn lại
-    const updatedCourse = await databaseService.courses.findOne({ _id: new ObjectId(course_id) })
-    if (updatedCourse) {
-      const updatedTopics = updatedCourse.topics.map((topic, index) => ({
-        ...topic,
-        order: index + 1
-      }))
-
-      await databaseService.courses.updateOne(
-        { _id: new ObjectId(course_id) },
-        {
-          $set: { topics: updatedTopics }
-        }
-      )
+    if (result.matchedCount === 0) {
+      throw new ErrorWithStatus({
+        message: 'Course not found',
+        status: 404
+      })
     }
 
-    return result
+    return { deleted: true }
   }
 
   async addLesson(courseSlug: string, topicSlug: string, payload: CreateLessonReqBody) {
     const course = await databaseService.courses.findOne({ slug: courseSlug })
-    if (!course) throw new ErrorWithStatus({ message: 'Course not found', status: 404 })
+    if (!course) {
+      throw new ErrorWithStatus({
+        message: 'Course not found',
+        status: 404
+      })
+    }
+
     const topic = course.topics.find((t) => t.slug === topicSlug)
-    if (!topic) throw new ErrorWithStatus({ message: 'Topic not found', status: 404 })
+    if (!topic) {
+      throw new ErrorWithStatus({
+        message: 'Topic not found',
+        status: 404
+      })
+    }
+
     const baseSlug = Lesson.generateSlug(payload.title)
     let slug = baseSlug
     const exists = topic.lessons?.find((l) => l.slug === slug)
@@ -241,13 +243,21 @@ class CourseService {
       slug,
       order
     })
-    // Cập nhật topic trong course
-    await databaseService.courses.updateOne(
+
+    const result = await databaseService.courses.updateOne(
       { slug: courseSlug, 'topics.slug': topicSlug },
       {
         $push: { 'topics.$.lessons': lesson }
       }
     )
+
+    if (result.matchedCount === 0) {
+      throw new ErrorWithStatus({
+        message: 'Course or topic not found',
+        status: 404
+      })
+    }
+
     return lesson.slug
   }
 
@@ -278,7 +288,7 @@ class CourseService {
 
     if (!result) {
       throw new ErrorWithStatus({
-        message: 'Course, topic or lesson not found',
+        message: 'Course, topic, or lesson not found',
         status: 404
       })
     }
@@ -290,7 +300,16 @@ class CourseService {
         status: 404
       })
     }
-    return topic.lessons?.find((l: LessonType) => l._id?.toString() === lessonId)
+
+    const lesson = topic.lessons?.find((l: LessonType) => l._id?.toString() === lessonId)
+    if (!lesson) {
+      throw new ErrorWithStatus({
+        message: 'Lesson not found',
+        status: 404
+      })
+    }
+
+    return lesson
   }
 
   async deleteLesson(course_id: string, topic_id: string, lesson_id: string) {
@@ -320,47 +339,28 @@ class CourseService {
 
     // Xóa lesson
     const result = await databaseService.courses.updateOne(
-      {
-        _id: new ObjectId(course_id),
-        'topics._id': new ObjectId(topic_id)
-      },
+      { _id: new ObjectId(course_id), 'topics._id': new ObjectId(topic_id) },
       {
         $pull: { 'topics.$.lessons': { _id: new ObjectId(lesson_id) } }
       }
     )
 
-    // Cập nhật lại order của các lesson còn lại trong topic
-    const updatedCourse = await databaseService.courses.findOne({ _id: new ObjectId(course_id) })
-    if (updatedCourse) {
-      const updatedTopic = updatedCourse.topics.find((t) => t._id?.toString() === topic_id)
-      if (updatedTopic) {
-        const updatedLessons = updatedTopic.lessons?.map((lesson, index) => ({
-          ...lesson,
-          order: index + 1
-        }))
-
-        await databaseService.courses.updateOne(
-          {
-            _id: new ObjectId(course_id),
-            'topics._id': new ObjectId(topic_id)
-          },
-          {
-            $set: { 'topics.$.lessons': updatedLessons }
-          }
-        )
-      }
+    if (result.matchedCount === 0) {
+      throw new ErrorWithStatus({
+        message: 'Course or topic not found',
+        status: 404
+      })
     }
 
-    return result
+    return { deleted: true }
   }
 
   async isUserEnrolled(user_id: string, course_id: string): Promise<boolean> {
-    const order = await databaseService.orders.findOne({
+    const enrollment = await databaseService.enrollments.findOne({
       user_id: new ObjectId(user_id),
-      'items.course_id': new ObjectId(course_id),
-      status: OrderStatus.Completed
+      course_id: new ObjectId(course_id)
     })
-    return Boolean(order)
+    return !!enrollment
   }
 
   async getPublicCourse(course_slug: string): Promise<PublicCourse> {
@@ -372,12 +372,10 @@ class CourseService {
       })
     }
 
-    // Lấy tên giảng viên
     const author = await databaseService.users.findOne({ _id: course.author_id })
-    const author_name = author?.name || ''
+    const author_name = author?.name || 'Unknown'
 
-    // Chuyển đổi sang PublicCourse - chỉ lấy thông tin cơ bản
-    const publicCourse: PublicCourse = {
+    return {
       _id: course._id,
       title: course.title,
       slug: course.slug,
@@ -404,99 +402,13 @@ class CourseService {
           })) || []
       }))
     }
-
-    return publicCourse
   }
 
   async getPublicCourses(): Promise<PublicCourse[]> {
-    const courses = await databaseService.courses.find({ status: CourseStatus.Published }).toArray()
-    if (!courses) return []
-    // Lấy tất cả author_id duy nhất
+    const courses = await databaseService.courses.find({}).toArray()
     const authorIds = Array.from(new Set(courses.map((course) => course.author_id)))
     const authors = await databaseService.users.find({ _id: { $in: authorIds } }).toArray()
-    return courses.map((course) => ({
-      _id: course._id,
-      title: course.title,
-      slug: course.slug,
-      author_name: authors.find((a) => a._id.toString() === course.author_id.toString())?.name || '',
-      description: course.description,
-      detailed_description: course.detailed_description,
-      thumbnail: course.thumbnail,
-      price: course.price,
-      status: course.status,
-      topics: course.topics.map((topic) => ({
-        _id: topic._id || new ObjectId(),
-        title: topic.title,
-        slug: topic.slug || '',
-        summary: topic.summary,
-        order: topic.order,
-        lessons:
-          topic.lessons?.map((lesson) => ({
-            _id: lesson._id || new ObjectId(),
-            title: lesson.title,
-            slug: lesson.slug || '',
-            description: lesson.description,
-            duration: lesson.duration,
-            order: lesson.order
-          })) || []
-      }))
-    }))
-  }
 
-  async getPrivateCourse(course_id: string, user_id: string): Promise<PrivateCourse | null> {
-    const course = await databaseService.courses.findOne({ _id: new ObjectId(course_id) })
-    if (!course) return null
-
-    // Lấy tên giảng viên
-    const author = await databaseService.users.findOne({ _id: course.author_id })
-    const author_name = author?.name || ''
-
-    // Chuyển đổi sang PrivateCourse - bao gồm cả video_url
-    const privateCourse: PrivateCourse = {
-      _id: course._id,
-      title: course.title,
-      slug: course.slug,
-      description: course.description,
-      detailed_description: course.detailed_description,
-      thumbnail: course.thumbnail,
-      price: course.price,
-      status: course.status,
-      topics: course.topics.map((topic) => ({
-        _id: topic._id || new ObjectId(),
-        title: topic.title,
-        slug: topic.slug || '',
-        summary: topic.summary,
-        order: topic.order,
-        lessons:
-          topic.lessons?.map((lesson) => ({
-            _id: lesson._id || new ObjectId(),
-            title: lesson.title,
-            slug: lesson.slug || '',
-            description: lesson.description,
-            duration: lesson.duration,
-            order: lesson.order,
-            video_url: lesson.video_url
-          })) || []
-      })),
-      author_name
-    }
-
-    return privateCourse
-  }
-
-  async getEnrolledCourses(user_id: string): Promise<PublicCourse[]> {
-    const orders = await databaseService.orders
-      .find({
-        user_id: new ObjectId(user_id),
-        status: OrderStatus.Completed
-      })
-      .toArray()
-
-    const courseIds = orders.flatMap((order) => order.items.map((item) => item.course_id))
-    const courses = await databaseService.courses.find({ _id: { $in: courseIds } }).toArray()
-    // Lấy tất cả author_id duy nhất
-    const authorIds = Array.from(new Set(courses.map((course) => course.author_id)))
-    const authors = await databaseService.users.find({ _id: { $in: authorIds } }).toArray()
     return courses.map((course) => ({
       _id: course._id,
       title: course.title,

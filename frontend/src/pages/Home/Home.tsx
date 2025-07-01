@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Button, Text, Flex } from '@chakra-ui/react'
 import { Toaster } from 'src/components/ui/toaster'
 import { useNavigate } from 'react-router-dom'
@@ -6,7 +6,6 @@ import CustomSlider from 'src/components/CustomSlider'
 import styles from './Home.module.scss'
 import CategoryCard from 'src/components/CategoryCard/CategoryCard'
 import { sliderSettings } from 'src/utils/utils'
-import { BlogCard } from 'src/components/BlogCard/BlogCard'
 import { useQuery } from '@tanstack/react-query'
 import type { CategoryType } from 'src/types/category.type'
 import { getCategories } from 'src/apis/categories.api'
@@ -16,9 +15,15 @@ import Hero from 'src/components/Home/Hero'
 import Mentor from 'src/components/Home/Mentor'
 import Newsletter from 'src/components/Home/Newsletter'
 import Testimonial from 'src/components/Home/Testimonials'
+import { useAppContext } from 'src/hooks/useAppContext'
+import { getBlogsWithParams } from 'src/apis/blogs.api'
+import { BlogCard } from 'src/components/BlogCard/BlogCard'
 
 export default function Home() {
   const navigate = useNavigate()
+  const { profile } = useAppContext()
+  const isAdmin = profile?.role === 'admin'
+
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: getCategories,
@@ -32,6 +37,18 @@ export default function Home() {
     centerMode: true,
     centerPadding: '0px'
   }
+
+  const { data: blogsData, isLoading: isLoadingBlogs } = useQuery({
+    queryKey: ['home-blogs'],
+    queryFn: () => getBlogsWithParams({ page: 1, limit: 3 })
+  })
+  const blogs = blogsData?.blogs || []
+
+  useEffect(() => {
+    if (isAdmin) {
+      navigate('/dashboard')
+    }
+  }, [isAdmin, navigate])
 
   return (
     <>
@@ -76,10 +93,19 @@ export default function Home() {
               alignItems='center'
               mt={10}
             >
-              <BlogCard />
-              <BlogCard />
-              <BlogCard />
-              <BlogCard />
+              {isLoadingBlogs ? (
+                <div className='flex justify-center py-12'>
+                  <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500'></div>
+                </div>
+              ) : blogs.length === 0 ? (
+                <div className='text-center py-12 text-gray-500'>Không có blog nào</div>
+              ) : (
+                <div className='flex flex-col gap-8 w-full'>
+                  {blogs.map((blog) => (
+                    <BlogCard key={blog._id || blog.id} blog={blog} />
+                  ))}
+                </div>
+              )}
             </Flex>
             <div className='flex justify-center mt-10'>
               <Button

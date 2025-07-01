@@ -4,6 +4,7 @@ import { validate } from '~/utils/validation'
 import { ErrorWithStatus } from '~/models/Errors'
 import databaseService from '~/services/database.services'
 import { ObjectId } from 'mongodb'
+import User from '~/models/schemas/User.schema'
 
 export const createOrderValidator = validate(
   checkSchema(
@@ -52,8 +53,8 @@ export const orderIdValidator = async (req: Request, res: Response, next: NextFu
   }
 
   // Check if user is authorized to access this order
-  const user = req.user
-  if (order.user_id.toString() !== user._id.toString()) {
+  const user = req.user as User
+  if (!user || order.user_id.toString() !== user._id.toString()) {
     throw new ErrorWithStatus({
       message: 'Access denied',
       status: 403

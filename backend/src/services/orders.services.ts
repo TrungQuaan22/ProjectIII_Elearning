@@ -42,8 +42,6 @@ class OrderService {
       items: user.cart,
       total_amount,
       payment_method: payload.payment_method,
-      shipping_address: payload.shipping_address,
-      note: payload.note,
       status: OrderStatus.Pending
     })
 
@@ -62,7 +60,14 @@ class OrderService {
 
     return {
       _id: result.insertedId,
-      ...order
+      user_id: order.user_id,
+      items: order.items,
+      total_amount: order.total_amount,
+      status: order.status,
+      payment_method: order.payment_method,
+      payment_id: order.payment_id,
+      created_at: order.created_at,
+      updated_at: order.updated_at
     }
   }
 

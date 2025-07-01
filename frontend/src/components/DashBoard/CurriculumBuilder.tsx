@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { CourseType } from 'src/types/course.type'
@@ -66,9 +66,6 @@ export default function CurriculumBuilder({ course, topics }: CurriculumBuilderP
       console.error('Delete topic error:', error)
       toast.error('Có lỗi xảy ra khi xóa chương. Vui lòng thử lại!')
     },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false
   })
 
   // Lesson mutations
@@ -84,9 +81,6 @@ export default function CurriculumBuilder({ course, topics }: CurriculumBuilderP
       console.error('Create lesson error:', error)
       toast.error('Có lỗi xảy ra khi tạo bài học. Vui lòng thử lại!')
     },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false
   })
 
   const updateLessonMutation = useMutation({
@@ -109,9 +103,6 @@ export default function CurriculumBuilder({ course, topics }: CurriculumBuilderP
       console.error('Update lesson error:', error)
       toast.error('Có lỗi xảy ra khi cập nhật bài học. Vui lòng thử lại!')
     },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false
   })
 
   const deleteLessonMutation = useMutation({
@@ -124,10 +115,7 @@ export default function CurriculumBuilder({ course, topics }: CurriculumBuilderP
     onError: (error: Error) => {
       console.error('Delete lesson error:', error)
       toast.error('Có lỗi xảy ra khi xóa bài học. Vui lòng thử lại!')
-    },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false
+    }
   })
 
   // Validation functions

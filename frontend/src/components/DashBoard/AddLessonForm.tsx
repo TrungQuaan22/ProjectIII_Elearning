@@ -20,7 +20,7 @@ export default function AddLessonForm({ topic, onAddLesson, errors = {} }: AddLe
       onAddLesson(topic, {
         title: title.trim(),
         description: description.trim(),
-        duration: Number(duration),
+        duration: Number(duration) * 60,
         video_url: videoUrl.trim()
       })
       setTitle('')
@@ -91,7 +91,7 @@ export default function AddLessonForm({ topic, onAddLesson, errors = {} }: AddLe
         <div className='grid grid-cols-2 gap-3'>
           <div>
             <label className='block text-sm font-medium text-gray-700 mb-1'>
-              Thời lượng (giây) <span className='text-red-500'>*</span>
+              Thời lượng (phút) <span className='text-red-500'>*</span>
             </label>
             <input
               value={duration}

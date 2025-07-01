@@ -27,7 +27,17 @@ export const createVNPayPaymentController = async (
       })
     }
 
-    const paymentUrl = await vnpayService.createPaymentUrl(order_id, user._id.toString(), order.total_amount)
+    // Get real IP address
+    const ipAddr =
+      req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || '127.0.0.1'
+
+    const paymentUrl = await vnpayService.createPaymentUrl(
+      order_id,
+      user._id.toString(),
+      order.total_amount,
+      Array.isArray(ipAddr) ? ipAddr[0] : ipAddr
+    )
+
     res.json({
       message: 'Create payment URL successfully',
       data: { payment_url: paymentUrl }
@@ -40,6 +50,15 @@ export const createVNPayPaymentController = async (
 export const vnpayCallbackController = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await vnpayService.verifyReturnUrl(req.query)
+    res.json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const vnpayIPNController = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = await vnpayService.verifyIPN(req.query)
     res.json(result)
   } catch (error) {
     next(error)

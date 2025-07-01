@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb'
 import databaseService from './database.services'
 import { ErrorWithStatus } from '~/models/Errors'
-import { Item } from '~/models/schemas/Item.schema'
+import { Item } from '~/models/schemas/User.schema'
 
 interface CartItemWithDetails extends Item {
   course: {

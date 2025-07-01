@@ -8,6 +8,8 @@ import PersonIcon from '@mui/icons-material/Person'
 import styles from './UserHeader.module.scss'
 import { useLogoutWithAPI } from 'src/hooks/useLogout'
 import { useAppContext } from 'src/hooks/useAppContext'
+import { getCart } from 'src/apis/cart.api'
+import { useQuery } from '@tanstack/react-query'
 
 interface UserHeaderProps {
   isAuthenticate: boolean
@@ -22,7 +24,11 @@ export default function UserHeader({ isAuthenticate }: UserHeaderProps) {
 
   // TODO: Replace with Context API for cart and wishlist
   const wishlist: unknown[] = [] // Will be replaced with Context
-  const cart = profile?.cart || []
+  const { data: cart } = useQuery({
+    queryKey: ['cart'],
+    queryFn: getCart,
+    staleTime: 1 * 60 * 1000
+  })
   const toggleMenu = () => {
     setShowMenu((prev) => !prev)
   }
@@ -80,9 +86,9 @@ export default function UserHeader({ isAuthenticate }: UserHeaderProps) {
 
       {/* Cart Icon */}
       <Link to='/cart' className={styles.icon}>
-        {cart.length > 0 && (
+        {(cart?.data?.length as number) > 0 && (
           <div className={styles.badge}>
-            <span>{cart.length}</span>
+            <span>{cart?.data?.length as number}</span>
           </div>
         )}
 

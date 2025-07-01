@@ -32,6 +32,7 @@ export interface RegisterRequest {
   name: string
   email: string
   password: string
+  confirm_password: string
   date_of_birth: string
 }
 
@@ -52,8 +53,8 @@ export const authApi = {
   },
   logout() {
     return http.post('users/logout')
-  },
-  getProfile() {
-    return http.get<{ user: UserType }>('users/my-profile')
   }
+  // getProfile() {
+  //   return http.get<{ user: UserType }>('users/my-profile')
+  // }
 }

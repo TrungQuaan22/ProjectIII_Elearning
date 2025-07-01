@@ -20,9 +20,9 @@ const renderStars = (rating: number) => {
 export default function CourseCard({ course, to }: { course: CourseType; to?: string }) {
   return (
     <Link to={to || `/courses/${course.slug}`} className='block'>
-      <div className='bg-white m-3 mb-12 px-3 pt-3 pb-12 shadow-course-shadow rounded-2xl h-full'>
+      <div className='bg-white m-3 mb-12 px-3 pt-3 pb-12 shadow-course-shadow rounded-2xl  '>
         <div className='relative rounded-3xl'>
-          <img src={`${getImagePrefix()}${course.thumbnail}`} alt='course-image' className='m-auto clipPath' />
+          <img src={`${getImagePrefix()}${course.thumbnail}`} alt='course-image' className='m-auto clipPath h-60 w-full object-cover' />
           <div className='absolute right-5 -bottom-2 bg-secondary rounded-full p-6'>
             <h3 className='text-white uppercase text-center text-sm font-medium'>
               best <br /> seller

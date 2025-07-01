@@ -221,34 +221,3 @@ export const getPublicCourseController = async (req: Request<{ id: string }>, re
     next(error)
   }
 }
-
-export const getPrivateCourseController = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
-  try {
-    const user = req.user as User
-    const result = await courseService.getPrivateCourse(req.params.id, user._id.toString())
-    if (!result) {
-      return res.status(404).json({
-        message: 'Course not found'
-      })
-    }
-    res.json({
-      message: 'Get course successfully',
-      data: result
-    })
-  } catch (error) {
-    next(error)
-  }
-}
-
-export const getEnrolledCoursesController = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const user = req.user as User
-    const result = await courseService.getEnrolledCourses(user._id.toString())
-    res.json({
-      message: 'Get enrolled courses successfully',
-      data: result
-    })
-  } catch (error) {
-    next(error)
-  }
-}

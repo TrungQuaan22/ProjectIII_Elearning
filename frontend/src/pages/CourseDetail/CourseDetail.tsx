@@ -4,18 +4,21 @@ import { Rating } from 'src/components/ui/rating'
 import { useParams, useNavigate } from 'react-router-dom'
 import DOMPurify from 'dompurify'
 import { formatCurrency } from 'src/utils/utils'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { getCourseDetail } from 'src/apis/courses.api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { getCourseDetail} from 'src/apis/courses.api'
 import { CourseType, initialCourse } from 'src/types/course.type'
 import { FiPlay, FiClock, FiBook, FiUser, FiStar } from 'react-icons/fi'
 import React from 'react'
 import { addToCart } from 'src/apis/cart.api'
 import { toast } from 'react-toastify'
 import { useAppContext } from 'src/hooks/useAppContext'
+import { useEnrollments } from 'src/hooks/useEnrollments'
+import { useCreateOrder } from 'src/hooks/useCreateOrder'
 
 export default function CourseDetail() {
   const { courseSlug } = useParams<{ courseSlug: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [courseDetail, setCourseDetail] = useState<CourseType>(initialCourse)
   const { isAuthenticated } = useAppContext()
 
@@ -25,6 +28,14 @@ export default function CourseDetail() {
     enabled: !!courseSlug,
     staleTime: 5 * 60 * 1000
   })
+
+  // Get user enrollments to check if course is enrolled
+  const { data: enrollmentsData } = useEnrollments()
+  const enrollments = enrollmentsData?.enrollments || []
+
+  // Check if current course is enrolled
+  const isEnrolled = enrollments.some((enrollment) => enrollment.course._id === courseDetail._id)
+  const enrollmentId = enrollments.find((enrollment) => enrollment.course._id === courseDetail._id)?.id
 
   useEffect(() => {
     if (error) {
@@ -47,10 +58,12 @@ export default function CourseDetail() {
       0
     ) || 0
 
-  const { mutate: addToCartMutation } = useMutation({
+  const addToCartMutation = useMutation({
     mutationFn: addToCart,
     onSuccess: () => {
       toast.success('Added to Cart')
+      // Invalidate cart query to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ['cart'] })
     },
     onError: (error: { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Failed to add to Cart')
@@ -72,17 +85,38 @@ export default function CourseDetail() {
   // Handle Add to Cart
   const handleAddToCart = () => {
     if (handleAuthCheck()) {
-      addToCartMutation(courseDetail._id as string)
+      addToCartMutation.mutate(courseDetail._id as string)
     }
   }
 
   // Handle Enroll Now
   const handleEnrollNow = () => {
     if (handleAuthCheck()) {
-      // TODO: Implement enrollment logic
-      toast.info('Enrollment functionality will be implemented soon!')
+      // Validate course has _id and price
+      if (!courseDetail._id) {
+        toast.error('Khóa học không hợp lệ')
+        return
+      }
+
+      if (!courseDetail.price || courseDetail.price <= 0) {
+        toast.error('Khóa học này hiện không có giá')
+        return
+      }
+
+      // Create direct order with single course
+      createDirectOrderMutation.mutate([courseDetail._id])
     }
   }
+
+  // Handle Continue Learning
+  const handleContinueLearning = () => {
+    if (enrollmentId) {
+      navigate(`/learn/${enrollmentId}`)
+    }
+  }
+
+  // Create direct order mutation
+  const createDirectOrderMutation = useCreateOrder()
 
   return (
     <div className='min-h-screen bg-gray-50'>
@@ -155,18 +189,31 @@ export default function CourseDetail() {
               </div>
 
               <div className='flex flex-col gap-3'>
-                <button
-                  onClick={handleEnrollNow}
-                  className='w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-medium transition-colors'
-                >
-                  Enroll Now
-                </button>
-                <button
-                  onClick={handleAddToCart}
-                  className='w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors'
-                >
-                  Add to Cart
-                </button>
+                {isEnrolled ? (
+                  <button
+                    onClick={handleContinueLearning}
+                    className='w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-medium transition-colors'
+                  >
+                    Continue Learning
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleEnrollNow}
+                      disabled={createDirectOrderMutation.isPending}
+                      className='w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white py-3 px-4 rounded-lg font-medium transition-colors'
+                    >
+                      {createDirectOrderMutation.isPending ? 'Processing...' : 'Enroll Now'}
+                    </button>
+                    <button
+                      onClick={handleAddToCart}
+                      disabled={addToCartMutation.isPending}
+                      className='w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 transition-colors'
+                    >
+                      {addToCartMutation.isPending ? 'Adding...' : 'Add to Cart'}
+                    </button>
+                  </>
+                )}
               </div>
 
               <hr className='my-4' />

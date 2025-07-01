@@ -3,7 +3,7 @@ import { Box, Flex, Text } from '@chakra-ui/react';
 import { BreadcrumbCurrentLink, BreadcrumbLink, BreadcrumbRoot } from 'src/components/ui/breadcrumb';
 import { Link } from 'react-router-dom';
 // import ChangePassword from './ChangePassword/ChangePassword';
-import ChangeProfile from './ChangeProfile/ChangeProfile';
+// import ChangeProfile from './ChangeProfile/ChangeProfile';  // eslint-disable-line @typescript-eslint/no-unused-vars
 
 export default function MyAcount() {
   const [isEditInfo, setEditInfo] = useState<null | 'profile' | 'password'>('profile');
@@ -58,7 +58,7 @@ export default function MyAcount() {
           </Flex>
           {/* main-content */}
           <Box flex={1} padding="50px 80px" boxShadow="0px 1px 13px 0px rgba(0, 0, 0, 0.05)">
-            {isEditInfo === 'profile' && <ChangeProfile onCancel={handleCancel} />}
+            {/* {isEditInfo === 'profile' && <ChangeProfile onCancel={handleCancel} />} */}
             {/* {isEditInfo === 'password' && <ChangePassword onCancel={handleCancel} />} */}
           </Box>
         </Flex>

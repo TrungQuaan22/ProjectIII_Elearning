@@ -1,21 +1,12 @@
 import React, { useEffect } from 'react'
 import { BreadcrumbCurrentLink, BreadcrumbLink, BreadcrumbRoot } from 'src/components/ui/breadcrumb'
-import { useQuery } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
-import { getAllCoursesByAdmin } from 'src/apis/courses.api'
 import CourseCard from 'src/components/CourseCard/CourseCard'
 import { FiBook } from 'react-icons/fi'
+import { useEnrollments } from 'src/hooks/useEnrollments'
 
 export default function Enrollments() {
-  const {
-    data: enrollmentsData,
-    isLoading,
-    error
-  } = useQuery({
-    queryKey: ['enrollments'],
-    queryFn: () => getAllCoursesByAdmin(),
-    staleTime: 5 * 60 * 1000 // 5 minutes
-  })
+  const { data: enrollmentsData, isLoading, error } = useEnrollments()
 
   useEffect(() => {
     if (error) {
@@ -24,8 +15,8 @@ export default function Enrollments() {
     }
   }, [error])
 
-  const courses = enrollmentsData?.courses || []
-  const totalCourses = enrollmentsData?.pagination?.total || 0
+  const enrollments = enrollmentsData?.enrollments || []
+  const totalEnrollments = enrollmentsData?.pagination?.total || 0
 
   return (
     <div className='min-h-screen bg-gray-50'>
@@ -44,8 +35,8 @@ export default function Enrollments() {
         <div className='mb-8'>
           <h1 className='text-3xl font-bold text-gray-900 mb-2'>My Enrolled Courses</h1>
           <p className='text-gray-600'>
-            {totalCourses > 0
-              ? `You have enrolled in ${totalCourses} course${totalCourses > 1 ? 's' : ''}`
+            {totalEnrollments > 0
+              ? `You have enrolled in ${totalEnrollments} course${totalEnrollments > 1 ? 's' : ''}`
               : "You haven't enrolled in any courses yet"}
           </p>
         </div>
@@ -63,17 +54,18 @@ export default function Enrollments() {
             <p className='text-red-600'>{error instanceof Error ? error.message : 'Error loading courses'}</p>
           </div>
         )}
+
         {/* Courses Grid */}
-        {courses.length > 0 && (
+        {enrollments.length > 0 && (
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6'>
-            {courses.map((course) => (
-              <CourseCard key={course._id} course={course} to={`/learn/${course.slug}`} />
+            {enrollments.map((enrollment) => (
+              <CourseCard key={enrollment.id} course={enrollment.course} to={`/learn/${enrollment.id}`} />
             ))}
           </div>
         )}
 
         {/* No Enrollments */}
-        {!isLoading && !error && courses.length === 0 && (
+        {!isLoading && !error && enrollments.length === 0 && (
           <div className='text-center py-12'>
             <div className='flex justify-center mb-4'>
               <FiBook className='text-gray-400 text-6xl' />

@@ -1,11 +1,11 @@
 import { ObjectId } from 'mongodb'
-import Enrollment from '~/models/schemas/Enrollment.schema'
+import Enrollment, { EnrollmentStatus } from '~/models/schemas/Enrollment.schema'
 import databaseService from './database.services'
 import { ErrorWithStatus } from '~/models/Errors'
 import { GetUserCoursesReqQuery, GetCourseEnrollmentsReqQuery } from '~/models/requests/courses.request'
 
 class EnrollmentService {
-  async enroll(courseId: string, userId: string, expiresAt?: Date) {
+  async enroll(courseId: string, userId: string, orderId: string) {
     // Check if course exists
     const course = await databaseService.courses.findOne({ _id: new ObjectId(courseId) })
     if (!course) {
@@ -33,21 +33,20 @@ class EnrollmentService {
       new Enrollment({
         user_id: new ObjectId(userId),
         course_id: new ObjectId(courseId),
-        enrolled_at: new Date(),
+        order_id: new ObjectId(orderId),
         progress: {
           completed_lessons: [],
-          last_accessed_lesson: new ObjectId(),
+          current_lesson: null,
           last_accessed_at: new Date()
         },
-        status: 'active',
-        expires_at: expiresAt
+        status: 'active'
       })
     )
 
     return result.insertedId.toString()
   }
 
-  async getUserCourses(userId: string, query: GetUserCoursesReqQuery) {
+  async getUserEnrollments(userId: string, query: GetUserCoursesReqQuery) {
     const { page = '1', limit = '10', status } = query
     const page_number = Number(page)
     const limit_number = Number(limit)
@@ -58,162 +57,170 @@ class EnrollmentService {
       match.status = status
     }
 
-    const [enrollments, total] = await Promise.all([
-      databaseService.enrollments
-        .aggregate([
-          { $match: match },
-          {
-            $lookup: {
-              from: 'courses',
-              localField: 'course_id',
-              foreignField: '_id',
-              as: 'course'
-            }
-          },
-          { $unwind: '$course' },
-          {
-            $lookup: {
-              from: 'users',
-              localField: 'course.author_id',
-              foreignField: '_id',
-              as: 'author'
-            }
-          },
-          { $unwind: '$author' },
-          {
-            $project: {
-              _id: 1,
-              status: 1,
-              enrolled_at: 1,
-              progress: 1,
-              expires_at: 1,
-              'course._id': 1,
-              'course.title': 1,
-              'course.description': 1,
-              'course.thumbnail': 1,
-              'course.topics': 1,
-              'author.name': 1
-            }
-          },
-          { $sort: { enrolled_at: -1 } },
-          { $skip: skip },
-          { $limit: limit_number }
-        ])
-        .toArray(),
-      databaseService.enrollments.countDocuments(match)
-    ])
+    // Check if enrollments exist for this user
+    const totalEnrollments = await databaseService.enrollments.countDocuments(match)
+
+    if (totalEnrollments === 0) {
+      return {
+        enrollments: [],
+        pagination: {
+          page: page_number,
+          limit: limit_number,
+          total: 0,
+          total_pages: 0
+        }
+      }
+    }
+
+    // First, let's see what enrollments we have
+    const rawEnrollments = await databaseService.enrollments.find(match).toArray()
+    if (rawEnrollments.length > 0) {
+      // Check if course exists for this enrollment
+      const courseId = rawEnrollments[0].course_id
+      const course = await databaseService.courses.findOne({ _id: courseId })
+      if (course) {
+        const author = await databaseService.users.findOne({ _id: course.author_id })
+        if (author) {
+          console.log('Author name:', author.name)
+        }
+      }
+    }
+
+    // Try a simpler approach first - just get enrollments with basic course info
+    const enrollments = await databaseService.enrollments
+      .aggregate([
+        { $match: match },
+        {
+          $lookup: {
+            from: 'courses',
+            localField: 'course_id',
+            foreignField: '_id',
+            as: 'course'
+          }
+        },
+        {
+          $addFields: {
+            courseExists: { $gt: [{ $size: '$course' }, 0] }
+          }
+        },
+        {
+          $match: {
+            courseExists: true
+          }
+        },
+        { $unwind: '$course' },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'course.author_id',
+            foreignField: '_id',
+            as: 'author'
+          }
+        },
+        {
+          $addFields: {
+            authorExists: { $gt: [{ $size: '$author' }, 0] }
+          }
+        },
+        {
+          $match: {
+            authorExists: true
+          }
+        },
+        { $unwind: '$author' },
+        {
+          $project: {
+            _id: 1,
+            status: 1,
+            created_at: 1,
+            progress: 1,
+            'course._id': 1,
+            'course.title': 1,
+            'course.description': 1,
+            'course.thumbnail': 1,
+            'course.slug': 1,
+            'course.price': 1,
+            'course.topics': 1,
+            'author.name': 1
+          }
+        },
+        { $sort: { created_at: -1 } },
+        { $skip: skip },
+        { $limit: limit_number }
+      ])
+      .toArray()
 
     return {
       enrollments: enrollments.map((enrollment) => ({
         id: enrollment._id,
         status: enrollment.status,
-        enrolled_at: enrollment.enrolled_at,
+        enrolled_at: enrollment.created_at,
         progress: enrollment.progress,
-        expires_at: enrollment.expires_at,
         course: {
-          id: enrollment.course._id,
+          _id: enrollment.course._id,
           title: enrollment.course.title,
           description: enrollment.course.description,
           thumbnail: enrollment.course.thumbnail,
-          topics: enrollment.course.topics.map((topic: any) => ({
-            id: topic._id,
-            title: topic.title,
-            summary: topic.summary,
-            order: topic.order,
-            lessons: topic.lessons.map((lesson: any) => ({
-              id: lesson._id,
-              title: lesson.title,
-              description: lesson.description,
-              duration: lesson.duration,
-              order: lesson.order
-            }))
-          })),
-          author: {
-            name: enrollment.author.name
-          }
+          slug: enrollment.course.slug,
+          author_name: enrollment.author.name
         }
       })),
       pagination: {
         page: page_number,
         limit: limit_number,
-        total,
-        total_pages: Math.ceil(total / limit_number)
+        total: enrollments.length,
+        total_pages: Math.ceil(enrollments.length / limit_number)
       }
     }
   }
 
-  async getCourseEnrollments(courseId: string, query: GetCourseEnrollmentsReqQuery) {
-    const { page = '1', limit = '10', status } = query
-    const page_number = Number(page)
-    const limit_number = Number(limit)
-    const skip = (page_number - 1) * limit_number
+  async getEnrollmentById(userId: string, enrollment_id: string) {
+    const enrollment = await databaseService.enrollments.findOne({
+      _id: new ObjectId(enrollment_id),
+      user_id: new ObjectId(userId)
+    })
 
-    const match: any = { course_id: new ObjectId(courseId) }
-    if (status) {
-      match.status = status
+    if (!enrollment) {
+      throw new ErrorWithStatus({
+        message: 'Enrollment not found',
+        status: 404
+      })
     }
 
-    const [enrollments, total] = await Promise.all([
-      databaseService.enrollments
-        .aggregate([
-          { $match: match },
-          {
-            $lookup: {
-              from: 'users',
-              localField: 'user_id',
-              foreignField: '_id',
-              as: 'user'
-            }
-          },
-          { $unwind: '$user' },
-          {
-            $project: {
-              _id: 1,
-              status: 1,
-              enrolled_at: 1,
-              progress: 1,
-              expires_at: 1,
-              'user.name': 1,
-              'user.email': 1
-            }
-          },
-          { $sort: { enrolled_at: -1 } },
-          { $skip: skip },
-          { $limit: limit_number }
-        ])
-        .toArray(),
-      databaseService.enrollments.countDocuments(match)
-    ])
+    // Get course details
+    const course = await databaseService.courses.findOne({ _id: enrollment.course_id })
+    if (!course) {
+      throw new ErrorWithStatus({
+        message: 'Course not found',
+        status: 404
+      })
+    }
 
     return {
-      enrollments: enrollments.map((enrollment) => ({
-        id: enrollment._id,
-        status: enrollment.status,
-        enrolled_at: enrollment.enrolled_at,
-        progress: enrollment.progress,
-        expires_at: enrollment.expires_at,
-        user: {
-          name: enrollment.user.name,
-          email: enrollment.user.email
-        }
-      })),
-      pagination: {
-        page: page_number,
-        limit: limit_number,
-        total,
-        total_pages: Math.ceil(total / limit_number)
+      id: enrollment._id,
+      status: enrollment.status,
+      enrolled_at: enrollment.created_at,
+      progress: enrollment.progress,
+      course: {
+        id: course._id,
+        title: course.title,
+        description: course.description,
+        thumbnail: course.thumbnail,
+        slug: course.slug,
+        topics: course.topics || []
       }
     }
   }
 
-  async updateProgress(enrollmentId: string, completedLessons: ObjectId[], lastAccessedLesson: ObjectId) {
+  async updateProgress(enrollmentId: string, completedLessons: ObjectId[], currentLesson: ObjectId) {
     const result = await databaseService.enrollments.findOneAndUpdate(
       { _id: new ObjectId(enrollmentId) },
       {
         $set: {
           'progress.completed_lessons': completedLessons,
-          'progress.last_accessed_lesson': lastAccessedLesson,
-          'progress.last_accessed_at': new Date()
+          'progress.current_lesson': currentLesson,
+          'progress.last_accessed_at': new Date(),
+          updated_at: new Date()
         }
       },
       { returnDocument: 'after' }
@@ -229,10 +236,15 @@ class EnrollmentService {
     return result
   }
 
-  async updateStatus(enrollmentId: string, status: 'active' | 'completed' | 'expired') {
+  async updateStatus(enrollmentId: string, status: EnrollmentStatus) {
     const result = await databaseService.enrollments.findOneAndUpdate(
       { _id: new ObjectId(enrollmentId) },
-      { $set: { status } },
+      {
+        $set: {
+          status,
+          updated_at: new Date()
+        }
+      },
       { returnDocument: 'after' }
     )
 

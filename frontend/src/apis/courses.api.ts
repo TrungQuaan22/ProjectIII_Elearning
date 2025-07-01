@@ -1,5 +1,6 @@
 import http from 'src/utils/http'
 import { CourseType } from 'src/types/course.type'
+import { EnrollmentsResponse, EnrollmentType } from 'src/types/enrollment.type'
 import {
   TopicType,
   LessonType,
@@ -47,9 +48,8 @@ export const getCourseDetailByAdmin = async (courseSlug: string): Promise<Course
   return res.data.data
 }
 
-export const getCourseEnrollmentDetail = async (courseSlug: string): Promise<CourseType> => {
-  //Sử dụng tạm quyền admin sẽ thay bằng url: enrollments/${enrollmentId} sau
-  const res = await http.get<{ message: string; data: CourseType }>(`/courses/${courseSlug}`)
+export const getCourseEnrollmentDetail = async (enrollmentId: string): Promise<EnrollmentType> => {
+  const res = await http.get<{ message: string; data: EnrollmentType }>(`/enrollments/${enrollmentId}`)
   return res.data.data
 }
 // All courses admin can see with video url
@@ -64,8 +64,20 @@ export const getAllCoursesByAdmin = async (params: GetCoursesParams = {}): Promi
   return res.data.data
 }
 
-export const getCourseEnrollments = async (): Promise<CoursesResponse> => {
-  const res = await http.get<{ message: string; data: CoursesResponse }>('/enrollments')
+export const getCourseEnrollments = async (): Promise<EnrollmentsResponse> => {
+  const res = await http.get<{ message: string; data: EnrollmentsResponse }>('/enrollments')
+  return res.data.data
+}
+
+export const updateEnrollmentProgress = async (
+  enrollmentId: string,
+  completedLessons: string[],
+  currentLesson: string
+): Promise<EnrollmentType> => {
+  const res = await http.put<{ message: string; data: EnrollmentType }>(`/enrollments/${enrollmentId}/progress`, {
+    completed_lessons: completedLessons,
+    current_lesson: currentLesson
+  })
   return res.data.data
 }
 
@@ -137,4 +149,35 @@ export const deleteLesson = async (
 ): Promise<{ message: string }> => {
   const res = await http.delete<{ message: string }>(`/courses/${courseSlug}/topics/${topicSlug}/lessons/${lessonSlug}`)
   return res.data
+}
+
+export const createOrder = async (
+  courseIds: string[]
+): Promise<{
+  order_id: string
+  total_amount: number
+  courses: Array<{
+    _id: string
+    title: string
+    price: number
+  }>
+}> => {
+  const res = await http.post<{
+    message: string
+    data: {
+      order_id: string
+      total_amount: number
+      courses: Array<{
+        _id: string
+        title: string
+        price: number
+      }>
+    }
+  }>('/orders', { course_ids: courseIds })
+  return res.data.data
+}
+
+export const createVNPayPayment = async (orderId: string): Promise<{ payment_url: string }> => {
+  const res = await http.post<{ message: string; data: { payment_url: string } }>(`/payments/vnpay/${orderId}`)
+  return res.data.data
 }

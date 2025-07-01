@@ -11,7 +11,9 @@ import ordersRouter from './routes/orders.routes'
 import databaseService from './services/database.services'
 import cartRouter from './routes/cart.routes'
 import blogsRouter from './routes/blogs.routes'
-import categoryRoutes from './routes/category.routes'
+import paymentsRouter from './routes/payments.routes'
+import enrollmentsRoutes from './routes/enrollments.routes'
+import categoryRouter from './routes/category.routes'
 
 config()
 
@@ -32,7 +34,9 @@ app.use('/api/courses', coursesRouter)
 app.use('/api/user-courses', userCoursesRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/cart', cartRouter)
-app.use('/api', categoryRoutes)
+app.use('/api/payments', paymentsRouter)
+app.use('/api/enrollments', enrollmentsRoutes)
+app.use('/api/categories', categoryRouter)
 
 // Error handling
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

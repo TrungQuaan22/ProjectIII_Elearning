@@ -1,6 +1,14 @@
 import { ObjectId } from 'mongodb'
 import { UserVerifyStatus, UserRole } from '~/constants/enum'
-import { Item } from './Item.schema'
+
+export interface Item {
+  course_id: ObjectId
+  added_at: Date
+}
+
+export interface ItemWithPrice extends Item {
+  price: number
+}
 
 interface UserType {
   _id?: ObjectId

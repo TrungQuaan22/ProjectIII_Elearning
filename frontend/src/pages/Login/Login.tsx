@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import styles from './login.module.scss'
-import { imgResLog } from 'src/assets/images'
 import { Link } from 'react-router-dom'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 import { Button } from 'src/components/ui/button'
@@ -80,7 +79,7 @@ const Login: React.FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.imageSection}>
-        <img src={imgResLog} alt='Shopping and phone' style={{ maxWidth: '100%', height: 'auto' }} />
+        <img src='images/banner/mahila.png' alt='Shopping and phone' style={{ maxWidth: '100%', height: 'auto' }} />
       </div>
       <div className={styles.formSection}>
         <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>

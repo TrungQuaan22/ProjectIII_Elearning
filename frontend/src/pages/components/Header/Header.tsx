@@ -1,4 +1,3 @@
-import React from 'react'
 import Logo from 'src/components/LogoHeader/LogoHeader'
 import NavHeader from 'src/components/NavHeader'
 import SearchHeader from 'src/components/SearchHeader/SearchHeader'
@@ -22,7 +21,7 @@ export default function Header() {
           <div style={{ marginRight: '25px' }}>
             <SearchHeader />
           </div>
-          <UserHeader isAuthenticate={isAuthenticated} />
+          {isAuthenticated && <UserHeader isAuthenticate={isAuthenticated} />}
         </div>
       </header>
     </Flex>

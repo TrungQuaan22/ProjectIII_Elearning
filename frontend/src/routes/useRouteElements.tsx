@@ -1,18 +1,12 @@
 import { Navigate, Outlet, useRoutes } from 'react-router-dom'
-import AuthLayout from 'src/layout/AuthLayout'
 import DefaultLayout from 'src/layout/DefaultLayout'
-import About from 'src/pages/About/About'
 import MyAcount from 'src/pages/Account/MyAcount'
 import CourseDetail from 'src/pages/CourseDetail/CourseDetail'
 import Cart from 'src/pages/Cart'
-import Checkout from 'src/pages/Checkout/Checkout'
-import Contact from 'src/pages/Contact/Contact'
 import Enrollments from 'src/pages/Enrollments/Enrollments'
-import ForgetPassword from 'src/pages/ForgetPassword/ForgetPassword'
 import Home from 'src/pages/Home'
 import ListCourses from 'src/pages/ListCourses'
 import Login from 'src/pages/Login'
-import MyOrders from 'src/pages/MyOrders'
 import NotFoundPage from 'src/pages/NotFound/NotFound'
 import Register from 'src/pages/Register'
 import ResetPassword from 'src/pages/ResetPassword/ResetPassword'
@@ -24,6 +18,12 @@ import DashboardHome from 'src/pages/DashBoard/DashboardHome'
 import CoursesList from 'src/pages/DashBoard/CoursesList'
 import CoursesCreate from 'src/pages/DashBoard/CoursesCreate'
 import CourseEditPage from 'src/pages/DashBoard/CourseEditPage'
+import BlogCreatePage from 'src/pages/DashBoard/BlogCreatePage'
+import BlogEditPage from 'src/pages/DashBoard/BlogEditPage'
+import PaymentCallback from 'src/pages/PaymentCallback/PaymentCallback'
+import BlogsListAdmin from 'src/pages/Blogs/BlogsListAdmin'
+import BlogDetail from 'src/pages/Blogs/BlogDetail'
+import BlogsListUser from 'src/pages/Blogs/BlogsListUser'
 
 function ProtectedRoute() {
   const { isAuthenticated } = useAppContext()
@@ -54,51 +54,45 @@ export default function useRouteElements() {
       )
     },
     {
+      path: '/blogs',
+      element: (
+        <DefaultLayout>
+          <BlogsListUser />
+        </DefaultLayout>
+      )
+    },
+    {
+      path: '/blogs/:slug',
+      element: (
+        <DefaultLayout>
+          <BlogDetail />
+        </DefaultLayout>
+      )
+    },
+    {
       path: '',
       element: <RejectedRoute />,
       children: [
         {
           path: '/login',
           element: (
-            <AuthLayout>
+            <DefaultLayout>
               <Login />
-            </AuthLayout>
+            </DefaultLayout>
           )
         },
         {
           path: '/register',
           element: (
-            <AuthLayout>
+            <DefaultLayout>
               <Register />
-            </AuthLayout>
+            </DefaultLayout>
           )
         },
         {
-          path: '/forget-password',
-          element: (
-            <AuthLayout>
-              <ForgetPassword />
-            </AuthLayout>
-          )
+          path: '/forget-password'
         }
       ]
-    },
-
-    {
-      path: '/contact',
-      element: (
-        <DefaultLayout>
-          <Contact />
-        </DefaultLayout>
-      )
-    },
-    {
-      path: '/about',
-      element: (
-        <DefaultLayout>
-          <About />
-        </DefaultLayout>
-      )
     },
 
     {
@@ -110,14 +104,6 @@ export default function useRouteElements() {
           element: (
             <DefaultLayout>
               <Cart />
-            </DefaultLayout>
-          )
-        },
-        {
-          path: '/checkout/:cartId',
-          element: (
-            <DefaultLayout>
-              <Checkout />
             </DefaultLayout>
           )
         },
@@ -138,14 +124,6 @@ export default function useRouteElements() {
           )
         },
         {
-          path: '/my-orders',
-          element: (
-            <DefaultLayout>
-              <MyOrders />
-            </DefaultLayout>
-          )
-        },
-        {
           path: '/enrollments',
           element: (
             <DefaultLayout>
@@ -154,7 +132,7 @@ export default function useRouteElements() {
           )
         },
         {
-          path: '/learn/:courseSlug',
+          path: '/learn/:enrollmentId',
           element: (
             <DefaultLayout>
               <LearnCourse />
@@ -174,9 +152,9 @@ export default function useRouteElements() {
     {
       path: '/reset-password/:token ',
       element: (
-        <AuthLayout>
+        <DefaultLayout>
           <ResetPassword />
-        </AuthLayout>
+        </DefaultLayout>
       )
     },
     {
@@ -185,13 +163,19 @@ export default function useRouteElements() {
       children: [
         { index: true, element: <DashboardHome /> },
         { path: 'courses', element: <CoursesList /> },
-        { path: 'courses/create', element: <CoursesCreate /> }
-        // Có thể thêm các route khác như blogs ở đây
+        { path: 'courses/create', element: <CoursesCreate /> },
+        { path: 'blogs', element: <BlogsListAdmin /> },
+        { path: 'blogs/create', element: <BlogCreatePage /> },
+        { path: 'blogs/edit/:slug', element: <BlogEditPage /> }
       ]
     },
     {
       path: '/dashboard/courses/:slug/edit',
       element: <CourseEditPage />
+    },
+    {
+      path: '/payment/vnpay/callback',
+      element: <PaymentCallback />
     },
     {
       path: '*',

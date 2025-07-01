@@ -1,46 +1,37 @@
-import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { useAppContext } from 'src/hooks/useAppContext'
-import styles from './NavHeader.module.scss'
 
-  
 export default function NavHeader() {
-  // TODO: Replace with useAppContext
   const { isAuthenticated } = useAppContext()
 
   return (
-    <div className={styles.container}>
-      <ul className={styles.nav}>
+    <div className='flex items-center justify-center'>
+      <ul className='flex items-center justify-center gap-10'>
         <li>
-          <NavLink className={({ isActive }) => (isActive ? styles.activeNavLink : styles.navLink)} to='/' end>
+          <NavLink className={({ isActive }) => (isActive ? 'text-green-500' : 'text-gray-500')} to='/' end>
             Home
           </NavLink>
         </li>
         <li>
-          <NavLink className={({ isActive }) => (isActive ? styles.activeNavLink : styles.navLink)} to='/contact'>
-            Contact
+          <NavLink className={({ isActive }) => (isActive ? 'text-green-500' : 'text-gray-500')} to='/courses'>
+            Courses
           </NavLink>
         </li>
         <li>
-          <NavLink className={({ isActive }) => (isActive ? styles.activeNavLink : styles.navLink)} to='/about'>
-            About
-          </NavLink>
-        </li>
-        <li>
-          <NavLink className={({ isActive }) => (isActive ? styles.activeNavLink : styles.navLink)} to='/about'>
+          <NavLink className={({ isActive }) => (isActive ? 'text-green-500' : 'text-gray-500')} to='/blogs'>
             Blog
           </NavLink>
         </li>
         {!isAuthenticated && (
           <>
-          <li>
-            <NavLink className={({ isActive }) => (isActive ? styles.activeNavLink : styles.navLink)} to='/register'>
-              Sign Up
-            </NavLink>
-          </li>
-          <li>
-          <NavLink className={({ isActive }) => (isActive ? styles.activeNavLink : styles.navLink)} to='/login'>
-            Login
+            <li>
+              <NavLink className={({ isActive }) => (isActive ? 'text-green-500' : 'text-gray-500')} to='/register'>
+                Sign Up
+              </NavLink>
+            </li>
+            <li>
+              <NavLink className={({ isActive }) => (isActive ? 'text-green-500' : 'text-gray-500')} to='/login'>
+                Login
               </NavLink>
             </li>
           </>

@@ -9,6 +9,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getCart, removeFromCart } from 'src/apis/cart.api'
 import { CartItem } from 'src/types/cart.type'
 import { formatCurrency } from 'src/utils/utils'
+import { useCreateOrder } from 'src/hooks/useCreateOrder'
 
 export default function Cart() {
   const navigate = useNavigate()
@@ -22,7 +23,7 @@ export default function Cart() {
   } = useQuery({
     queryKey: ['cart'],
     queryFn: getCart,
-    staleTime: 5 * 60 * 1000 // 5 minutes
+    staleTime: 1 * 60 * 1000
   })
 
   useEffect(() => {
@@ -50,6 +51,9 @@ export default function Cart() {
     }
   })
 
+  // Create order mutation
+  const createOrderMutation = useCreateOrder()
+
   const handleRemoveItem = (course_id: string) => {
     removeMutation.mutate(course_id)
   }
@@ -59,7 +63,10 @@ export default function Cart() {
       toast.error('Your cart is empty')
       return
     }
-    navigate('/checkout')
+
+    // Extract course IDs from cart items
+    const courseIds = cartItems.map((item) => item.course_id)
+    createOrderMutation.mutate(courseIds)
   }
 
   return (
@@ -135,9 +142,10 @@ export default function Cart() {
                 </button>
                 <button
                   onClick={handleCheckout}
-                  className='max-w-sm bg-blue-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-600 ease-in-out duration-300'
+                  disabled={createOrderMutation.isPending}
+                  className='max-w-sm bg-blue-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-600 ease-in-out duration-300 disabled:bg-blue-300'
                 >
-                  Proceed to Checkout
+                  {createOrderMutation.isPending ? 'Processing...' : 'Pay with VNPay'}
                 </button>
               </div>
             </div>

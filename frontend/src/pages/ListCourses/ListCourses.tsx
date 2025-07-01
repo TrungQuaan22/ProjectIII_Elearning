@@ -6,9 +6,11 @@ import CourseCard from 'src/components/CourseCard/CourseCard'
 import { getAllCourses, GetCoursesParams } from 'src/apis/courses.api'
 import { FiSearch, FiFilter, FiX } from 'react-icons/fi'
 import { useDebounce } from 'src/hooks/useDebounce'
+import { useSearchParams } from 'react-router-dom'
 
 export default function ListCourses() {
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const searchTerm = searchParams.get('search') || ''
   const [currentPage, setCurrentPage] = useState(1)
   const [limit] = useState(3) // Number of courses per page
   const [showFilters, setShowFilters] = useState(false)
@@ -46,7 +48,7 @@ export default function ListCourses() {
   }, [error])
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value)
+    setSearchParams({ search: e.target.value })
   }
 
   const handlePageChange = (page: number) => {
@@ -55,7 +57,7 @@ export default function ListCourses() {
   }
 
   const clearFilters = () => {
-    setSearchTerm('')
+    setSearchParams({ search: '' })
     setStatusFilter('')
     setCurrentPage(1)
   }
@@ -94,13 +96,13 @@ export default function ListCourses() {
                 <input
                   type='text'
                   placeholder='Search courses...'
-                  value={searchTerm}
+                  value={searchTerm || ''}
                   onChange={handleSearchChange}
                   className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                 />
                 {searchTerm && (
                   <button
-                    onClick={() => setSearchTerm('')}
+                    onClick={() => setSearchParams({ search: '' })}
                     className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600'
                   >
                     <FiX />

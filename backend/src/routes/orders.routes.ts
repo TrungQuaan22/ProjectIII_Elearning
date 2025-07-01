@@ -12,7 +12,7 @@ const ordersRouter = Router()
 // Apply access token validator to all routes
 ordersRouter.use(accessTokenValidator)
 
-// Create order
+// Create order (from cart or direct)
 ordersRouter.post('/', createOrderController)
 
 // Get all orders

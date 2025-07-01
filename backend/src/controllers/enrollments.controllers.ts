@@ -1,42 +1,27 @@
 import { Request, Response, NextFunction } from 'express'
 import enrollmentService from '~/services/enrollments.services'
-import { GetUserCoursesReqQuery, GetCourseEnrollmentsReqQuery } from '~/models/requests/courses.request'
 import { ObjectId } from 'mongodb'
-export const enrollCourseController = async (req: Request<{ courseId: string }>, res: Response, next: NextFunction) => {
-  try {
-    const result = await enrollmentService.enroll(req.params.courseId, req.user?._id.toString() || '')
-    res.status(201).json({
-      message: 'Enrolled in course successfully',
-      data: { enrollment_id: result }
-    })
-  } catch (error) {
-    next(error)
-  }
-}
+import User from '~/models/schemas/User.schema'
+import { EnrollmentStatus } from '~/models/schemas/Enrollment.schema'
 
-export const getUserCoursesController = async (
-  req: Request<{ userId: string }, unknown, unknown, GetUserCoursesReqQuery>,
-  res: Response,
-  next: NextFunction
-) => {
+//Lấy ra các khóa học đã đăng ký của user
+export const getUserEnrollmentsController = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const result = await enrollmentService.getUserCourses(req.params.userId, req.query)
+    const user = req.user as User
+    const result = await enrollmentService.getUserEnrollments(user._id.toString(), req.query)
     res.json({
-      message: 'Get user courses successfully',
+      message: 'Get user enrollments successfully',
       data: result
     })
   } catch (error) {
     next(error)
   }
 }
-
-export const getCourseEnrollmentsController = async (
-  req: Request<{ courseId: string }, unknown, unknown, GetCourseEnrollmentsReqQuery>,
-  res: Response,
-  next: NextFunction
-) => {
+//Lấy ra thông tin của khóa học đã đăng ký của user
+export const getEnrollmentByIdController = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
-    const result = await enrollmentService.getCourseEnrollments(req.params.courseId, req.query)
+    const user = req.user as User
+    const result = await enrollmentService.getEnrollmentById(user._id.toString(), req.params.id)
     res.json({
       message: 'Get course enrollments successfully',
       data: result
@@ -46,19 +31,27 @@ export const getCourseEnrollmentsController = async (
   }
 }
 
-export const updateProgressController = async (
-  req: Request<{ enrollmentId: string }, unknown, { completedLessons: string[]; lastAccessedLesson: string }>,
+export const updateEnrollmentProgressController = async (
+  req: Request<{ id: string }, any, { completed_lessons: string[]; current_lesson: string }>,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    const user = req.user as User
+    const { completed_lessons, current_lesson } = req.body
+
+    // Convert string IDs to ObjectIds
+    const completedLessonsObjectIds = completed_lessons.map((id) => new ObjectId(id))
+    const currentLessonObjectId = current_lesson ? new ObjectId(current_lesson) : null
+
     const result = await enrollmentService.updateProgress(
-      req.params.enrollmentId,
-      req.body.completedLessons.map((id) => new ObjectId(id)),
-      new ObjectId(req.body.lastAccessedLesson)
+      req.params.id,
+      completedLessonsObjectIds,
+      currentLessonObjectId as ObjectId
     )
+
     res.json({
-      message: 'Progress updated successfully',
+      message: 'Update enrollment progress successfully',
       data: result
     })
   } catch (error) {
@@ -67,7 +60,7 @@ export const updateProgressController = async (
 }
 
 export const updateStatusController = async (
-  req: Request<{ enrollmentId: string }, unknown, { status: 'active' | 'completed' | 'expired' }>,
+  req: Request<{ enrollmentId: string }, unknown, { status: EnrollmentStatus }>,
   res: Response,
   next: NextFunction
 ) => {
